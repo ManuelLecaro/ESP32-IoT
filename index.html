@@ -1,0 +1,1504 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Manual IoTivity en dispositivos ESP32</title>
+  <script src="https://storage.googleapis.combower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="https://storage.googleapis.comelements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="../../elements/codelab.html">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Manual IoTivity en dispositivos ESP32"
+                  environment="web"
+                  feedback-link="https://github.com/ManuelLecaro/ESP32-IoT/issues">
+
+      <google-codelab-step label="Introducción" duration="0">
+        <p>El siguiente manual fue creado para proveer de una pauta para iniciar el desarrollo en dispositivos ESP32 que puedan comunicarse usando el protocolo El protocolo de aplicaciones reducidas (<em>CoAP</em>) (<em>RFC</em> 7252, Junio 2014), usando la plataforma provista por Espressif Systems para el desarrollo en equipos ESP32 y ESP8266 y la versión reducida de Iotivity</p>
+<p>Se proveerá de un ejemplo base, que actualmente trabaja de forma no segura, pero que se planea la implementación de mensajería segura con TLS.</p>
+<h2><strong>¿Qué es un ESP32?</strong></h2>
+<p>El ESP32 es un microcontrolador orientado al Internet de las cosas lanzado al mercado por Espressif Systems.</p>
+<p>Entre sus características principales están:</p>
+<ul>
+<li><strong>Robustez</strong> -Es capaz de operar en temperaturas en un rango de -40°C a +125°C. El ESP32 puede de forma dinámica remover imperfecciones externas del circuito y adaptarse a condiciones externas.</li>
+<li><strong>Soporte para Wi-Fi y Bluetooth</strong> - ESP32 puede actuar como un sistema autónomo o esclavo de un host, reduce el stack producto de la comunicación en la aplicación principal. ESP32 puede interactuar por medio de interfaces de otros sistemas que provean Wi-Fi y Bluetooth por medio de SPI / SDIO o I2C / UART.</li>
+<li><strong>Nivel de Integración alto</strong> - Es altamente integrado con switches de antenas internas, RF, amplificador de poder, filtros, módulos de manejo de poder, tiene bajos requerimientos para PCBs</li>
+<li><strong>Bajo nivel de consumo</strong> - ha sido diseñado para dispositivos móviles, wearables y aplicaciones de IoT, por lo que tiene niveles mínimos de consumo.</li>
+</ul>
+<p>This codelab will walk you through creating your own Progressive Web App, including the design considerations, as well as implementation details, to ensure that your app meets the above key principles of a Progressive Web App.</p>
+<aside class="special"><p>Para saber más sobre los dispositivos ESP32  <a href="https://www.espressif.com/en/products/hardware/esp32/overview" target="_blank">ESP32 overview</a>.</p>
+</aside>
+<h2><strong>¿Qué es IoTivity?</strong></h2>
+<p>Iotivity es un proyecto de código abierto que implementa el <strong>estándar de la Open Connectivity Foundation (OCF)</strong> para la comunicación entre objetos inteligentes independiente del protocolo. El estándar cuenta con <strong>versión 2.0</strong>, disponible en este<a href="https://openconnectivity.org/developer/specifications" target="_blank">enlace</a>. La especificación se basa en una arquitectura <strong>REST</strong>, en la que existe un cliente que puede descubrir e interactuar con recursos en el servidor. </p>
+<ul>
+<li><strong>Cliente OCF (OCF Client):</strong> Es una entidad lógica que interactúa con recursos de un servidor OCF mediante descubrimiento de los mismos y posterior acceso con operaciones CRUDN (C: Create / Crear , R: Retrieve / Obtener, U: Update / Actualizar, D: Delete / Eliminar, N: Notify / Notificar)</li>
+<li><strong>Servidor OCF (OCF Server):</strong> Es una entidad lógica que expone sus recursos almacenados, se puede descubrir y responde a las transacciones iniciadas por un cliente.</li>
+</ul>
+<aside class="special"><p>Aquí puedes encontrar más información detallada acerca de <a href="https://fercamp09.github.io/iotivity-first-device/index.html#0" target="_blank">IoTivity</a></p>
+</aside>
+<h2><strong>¿Qué se va a desarrollar?</strong></h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>En este codelab desarrollarás una aplicación de cliente servidor en la que el servidor es un dispositivo ESP32 el cual está conectado a un recurso del cual se podrá acceder y enviar datos</p>
+<p>En la aplicación podrá:</p>
+<ul>
+<li>Hacer descubrimiento de los equipos en la red por medio de IoTivity</li>
+<li>Enviar mensajes en CoAP hacia un servidor hallado en un ESP32.</li>
+<li>Realizar acciones según los requerimientos enviados al servidor.</li>
+<li>Denotar como procede el envío de datos.</li>
+</ul>
+</td><td colspan="1" rowspan="1"><p><img style="max-width: 298.00px" src="img/15eded787c295a65.png"></p>
+</td></tr>
+</table>
+<h2><strong>¿Qué aprenderás?</strong></h2>
+<ul>
+<li>Diseñar y desarrollar aplicaciones que se basen en IoTivity como medio para el envío de mensajes siguiendo el CoAP en un dispositivo ESP32.</li>
+<li>Forma de trabajar en aplicaciones con Espressif-IDF</li>
+<li>Desarrollo de aplicaciones con Iotivity Constrained</li>
+</ul>
+<h2>Materiales a usar</h2>
+<ul>
+<li>Dos dispositivos ESP32</li>
+<li>Un computador con Ubuntu 16.04 lts o mayor</li>
+<li><a href="https://github.com/espressif/esp32-iotivity" target="_blank">El código base</a></li>
+<li>Un editor de texto</li>
+<li>Conocimientos de C, C++</li>
+</ul>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Empezando con las dependencias" duration="0">
+        <h2><strong>Obteniendo código base</strong></h2>
+<p>El siguiente instructivo está enfocado para sistemas Linux</p>
+<ol type="1" start="1">
+<li>Cree el directorio donde desarrollará sus proyectos</li>
+</ol>
+<pre><code>$ mkdir IotivityESP32</code></pre>
+<ol type="1" start="2">
+<li>Para obtener el código base diríjase a este <a href="https://github.com/espressif/esp32-iotivity" target="_blank">repositorio</a> o descargue como un archivo ZIP </li>
+</ol>
+<p><a href="https://github.com/espressif/esp32-iotivity/archive/master.zip" target="_blank"><paper-button class="colored" raised>Descargar ZIP</paper-button></a></p>
+<p>Dentro encontrará una guí provista por Espressif Systems para el soporte OIC/OCF  en sistemas ESP</p>
+<ol type="1" start="3">
+<li>Dentro de su directorio agregar el componente de IoTivity Constrained</li>
+</ol>
+<pre><code>git clone https://github.com/espressif/esp32-iotivity.git
+cd esp32-iotivity
+git submodule update --init --recursive</code></pre>
+<h2><strong>Pre requisitos y seteando variables de entorno</strong></h2>
+<p>Para información más detallada, así como respuestas a las preguntas mś frecuentes diríjase a este <a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html" target="_blank">sitio</a></p>
+<ol type="1" start="1">
+<li>Instale los pre requisitos para compilar con esp-idf</li>
+</ol>
+<p>En Ubuntu/Debian:</p>
+<pre><code>sudo apt-get install gcc git wget make libncurses-dev flex bison gperf python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing</code></pre>
+<p>En CentOS 7:</p>
+<pre><code>sudo yum install gcc git wget make ncurses-devel flex bison gperf python python2-cryptography</code></pre>
+<p>En Arch:</p>
+<pre><code>sudo pacman -S --needed gcc git make ncurses flex bison gperf python2-pyserial python2-cryptography python2-future python2-pyparsing</code></pre>
+<ol type="1" start="2">
+<li>Configuración estándar de cadena de herramientas</li>
+</ol>
+<p>Para crear con esp-idf, necesitará utilizar la cadena de herramientas que provee Espressif Systems, para <a href="https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz" target="_blank">64 bits</a> y para <a href="https://dl.espressif.com/dl/xtensa-esp32-elf-linux32-1.22.0-80-g6c4433a-5.2.0.tar.gz" target="_blank">32 bits</a> </p>
+<p>Para 64 bits</p>
+<pre><code>mkdir -p ~/esp
+cd ~/esp
+tar -xzf ~/Downloads/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz</code></pre>
+<p>Para 32 bits</p>
+<pre><code>mkdir -p ~/esp
+cd ~/esp
+tar -xzf ~/Downloads/xtensa-esp32-elf-linux32-1.22.0-80-g6c4433a-5.2.0.tar.gz</code></pre>
+<p>La cadena de herramientas será descargada en el directorio </p>
+<pre><code>~/esp/xtensa-esp32-elf/</code></pre>
+<ol type="1" start="3">
+<li>Actualizar variables de ambiente para eso entrar en ~/bashrc y guardar la variable de entorno </li>
+</ol>
+<pre><code>$ sudo gedit ~/.bashrc
+
+ Al final del archivo agregar:
+
+export IDF_PATH=~/Documents/esp32-iotivity/esp-idf
+
+export PATH=&#34;$HOME/esp/xtensa-esp32-elf/bin:$PATH&#34;
+
+alias get_esp32=&#39;export PATH=&#34;$HOME/esp/xtensa-esp32-elf/bin:$PATH&#34;&#39; </code></pre>
+<p>La variable de entorno <strong><em>IDF_PATH=~/Documents/esp32-iotivity/esp-idf </em></strong>es el lugar donde se tiene almacenado el código base obtenido en el paso 1. </p>
+<ol type="1" start="4">
+<li>En ~/.profile guardamos las variables de entorno para extensa-esp32-elf</li>
+</ol>
+<pre><code>export IDF_PATH=~/esp/esp-idf
+export PATH=&#34;$HOME/esp/xtensa-esp32-elf/bin:$PATH&#34;
+Alias get_esp32=&#39;export PATH=&#34;$HOME/esp/xtensa-esp32-elf/bin:$PATH&#34;&#39;</code></pre>
+<ol type="1" start="5">
+<li>En el caso de querer cambiar la variable de entorno de forma temporal</li>
+</ol>
+<pre><code>printenv PATH [path_de_esp-idf]</code></pre>
+<ol type="1" start="6">
+<li>En caso de tener problemas conectando los puertos USB (<strong>/dev/ttyUSB0</strong>), diríjase al siguiente<a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/establish-serial-connection.html#linux-dialout-group" target="_blank"> apartado</a> </li>
+</ol>
+<h2><strong>Compilando la cadena de herramientas</strong></h2>
+<ol type="1" start="1">
+<li>Para construir la cadena de herramientas se necesita tener estas dependencias de pre requisitos:</li>
+</ol>
+<p>Para Ubuntu:</p>
+<pre><code>sudo apt-get install git wget make libncurses-dev flex bison gperf python python-pip python-setuptools python-serial python-pyparsing</code></pre>
+<p>Para Arch:</p>
+<pre><code>sudo pacman -S --needed gcc git make ncurses flex bison gperf python2-pyserial python2-pyparsing</code></pre>
+<ol type="1" start="2">
+<li>Dependencias para la compilación</li>
+</ol>
+<p>CentOS 7:</p>
+<pre><code>sudo yum install gawk gperf grep gettext ncurses-devel python python-devel automake bison flex texinfo help2man libtool</code></pre>
+<p>Ubuntu 16.04:</p>
+<pre><code>sudo apt-get install gawk gperf grep gettext python python-dev automake bison flex texinfo help2man libtool libtool-bin</code></pre>
+<ol type="1" start="3">
+<li>Crear un directorio</li>
+</ol>
+<pre><code>mkdir -p ~/esp
+cd ~/esp</code></pre>
+<ol type="1" start="4">
+<li>Descargar crostool-ng</li>
+</ol>
+<pre><code>git clone -b xtensa-1.22.x https://github.com/espressif/crosstool-NG.git
+cd crosstool-NG
+./bootstrap &amp;&amp; ./configure --enable-local &amp;&amp; make install</code></pre>
+<ol type="1" start="5">
+<li>Construir la cadena de herramientas</li>
+</ol>
+<pre><code>./ct-ng xtensa-esp32-elf
+./ct-ng build
+chmod -R u+w builds/xtensa-esp32-elf</code></pre>
+<h2><strong>Usar ESP-IDF con IoTivity</strong></h2>
+<p>Dentro del repositorio base se tendrá un árbol de directorios del framework esp-idf  con la siguiente forma:</p>
+<pre><code>- myProject/
+             - Makefile
+             - sdkconfig
+             - components/ - component1/ - component.mk
+                                         - Kconfig
+                                         - src1.c
+                           - component2/ - component.mk
+                                         - Kconfig
+                                         - src1.c
+                                         - include/ - component2.h
+             - main/       - src1.c
+                           - src2.c
+                           - component.mk
+
+             - build/</code></pre>
+<p>En el siguiente apartado hay una explicación más detallada de los componentes que forman el framework <a href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html" target="_blank">esp-idf</a></p>
+<aside class="special"><h3><strong>Explicando ESP-IDF:</strong></h3>
+<p>Un proyecto en ESP-IDF es un conjunto amalgamado de componentes entre los cuales están:</p>
+<ul>
+<li>Librerías base de ESP32 (libc, rom bindings etc)</li>
+<li>Drivers WIFI</li>
+<li>Stack TCP/IP</li>
+<li>Sistema operativo FreeRTOS</li>
+<li>Un servidor Web</li>
+<li>Drivers de sensores de humedad</li>
+<li>Código base que unifica todo</li>
+</ul>
+</aside>
+<p>La forma de construir un proyecto en ESP-IDF depende del archivo make principal en el que se establecen las dependencias que nuestro proyecto usará, así como de los component.mk files dentro de cada directorio de los componentes.</p>
+<p>Dentro de los component.mk files se establecen la ubicación de los headers, los archivos .c, donde estarán los archivos de objetos y las dependencias con otros componentes.</p>
+<p>IoTivity Constrained es construido como un componente dentro de nuestro proyecto en ESP-IDF.</p>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Actualizando la versión de IoTivity" duration="0">
+        <p>La versión actual dentro de IoTivity en el código base corresponde a <a href="https://github.com/iotivity/iotivity-constrained/tree/0840e0a41a95fcff725e498fc7245a828a1a65a3" target="_blank">iotivity-constrained @ 0840e0a</a>, la cual soporta OIC ver. 1.1, la versión actual es la 2.0, por lo tanto para tener el soporte, necesitaremos actualizar el repositorio de <a href="https://github.com/iotivity/iotivity-constrained" target="_blank">IoTivity</a>.</p>
+<p>Una vez actualizada, la versión de IoTivity constrained, se deberá cambiar su resectivo component.mk file, para no tener problemas con dependencias y agregar las nuevas funciones como nuevos ports y cambios en archivos de seguridad.</p>
+<p>El component file será:</p>
+<pre><code>#
+# Component Makefile
+#
+
+COMPONENT_ADD_INCLUDEDIRS :=  \
+adapter/include \
+iotivity-constrained    \
+iotivity-constrained/include \
+iotivity-constrained/messaging/coap \
+iotivity-constrained/security \
+iotivity-constrained/util   \
+iotivity-constrained/util/pt   \
+iotivity-constrained/deps/tinycbor/src
+
+COMPONENT_DIRS :=\
+deps/mbdetls/include/mbedtls \
+deps/mbedtls/library
+
+COMPONENT_OBJS =  \
+iotivity-constrained/deps/tinycbor/src/cborencoder.o    \
+iotivity-constrained/deps/tinycbor/src/cborencoder_close_container_checked.o    \
+iotivity-constrained/deps/tinycbor/src/cborparser.o \
+\
+adapter/src/random.o    \
+adapter/src/storage.o   \
+adapter/src/clock.o     \
+adapter/src/ipadapter.o \
+adapter/src/abort.o     \
+adapter/src/debug_print.o   \
+\
+iotivity-constrained/util/oc_etimer.o \
+iotivity-constrained/util/oc_list.o \
+iotivity-constrained/util/oc_memb.o \
+iotivity-constrained/util/oc_mmem.o \
+iotivity-constrained/util/oc_process.o \
+iotivity-constrained/util/oc_timer.o \
+\
+iotivity-constrained/api/oc_base64.o \
+iotivity-constrained/api/oc_blockwise.o \
+iotivity-constrained/api/oc_buffer.o \
+iotivity-constrained/api/oc_client_api.o \
+iotivity-constrained/api/oc_collection.o \
+iotivity-constrained/api/oc_core_res.o \
+iotivity-constrained/api/oc_discovery.o \
+iotivity-constrained/api/oc_endpoint.o \
+iotivity-constrained/api/oc_helpers.o \
+iotivity-constrained/api/oc_introspection.o \
+iotivity-constrained/api/oc_main.o \
+iotivity-constrained/api/oc_network_events.o \
+iotivity-constrained/api/oc_rep.o \
+iotivity-constrained/api/oc_ri.o \
+iotivity-constrained/api/oc_server_api.o \
+iotivity-constrained/api/oc_uuid.o \
+iotivity-constrained/api/oc_session_events.o \
+\
+iotivity-constrained/security/oc_acl.o\
+iotivity-constrained/security/oc_cred.o\
+iotivity-constrained/security/oc_doxm.o\
+iotivity-constrained/security/oc_obt.o\
+iotivity-constrained/security/oc_pstat.o\
+iotivity-constrained/security/oc_store.o\
+iotivity-constrained/security/oc_svr.o\
+iotivity-constrained/security/oc_roles.o\
+iotivity-constrained/security/oc_pki.o\
+iotivity-constrained/security/oc_sp.o\
+iotivity-constrained/security/oc_certs.o\
+iotivity-constrained/security/oc_csr.o\
+iotivity-constrained/security/oc_keypair.o\
+iotivity-constrained/security/oc_sp.o\
+iotivity-constrained/security/oc_tls.o\
+\
+iotivity-constrained/messaging/coap/coap_signal.o\
+iotivity-constrained/messaging/coap/coap.o  \
+iotivity-constrained/messaging/coap/engine.o    \
+iotivity-constrained/messaging/coap/observe.o   \
+iotivity-constrained/messaging/coap/separate.o  \
+iotivity-constrained/messaging/coap/transactions.o
+
+COMPONENT_SRCDIRS :=  \
+iotivity-constrained/util  \
+iotivity-constrained/include \
+iotivity-constrained/security \
+iotivity-constrained/api \
+iotivity-constrained/messaging/coap \
+iotivity-constrained/deps/tinycbor/src  \
+adapter/src
+</code></pre>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Creando código en ESP-IDF con Iotivity" duration="0">
+        <h2><strong>ESP-IDF framework</strong></h2>
+<p>Como fue explicado en puntos anteriores se usará el framework oficial de Espressif para manejar la creación de aplicaciones con IoTivity.</p>
+<h2><strong>Configuraciones básicas</strong></h2>
+<p>Para probar que hemos instalado correctamente los componentes necesarios para usar ESP-IDF y no hay problemas con nuestras variables de entorno, vamos a construir el menú de configuración de la siguiente forma </p>
+<aside class="special"><p>***Dentro del directorio del código base***</p>
+<p>$ make menuconfig</p>
+</aside>
+<p>A continuación en caso de que todo haya sido correctamente instalado aparecerá una ventana de configuración</p>
+<p><img style="max-width: 624.00px" src="img/1c173a1bcb563599.png"></p>
+<h2><img style="max-width: 624.00px" src="img/a1ddd2af85caef93.png"></h2>
+<p>Para poder observar correctamente los mensajes de debug cuando estemos corriendo nuestra aplicación con flash monitor, en caso de dispositivos hechos por SparkFun se necesita setear el Main XTAL frequency en 26 MHz</p>
+<h2><strong>Componente de IoTivity-Constrained</strong></h2>
+<p>Dentro de nuestro proyecto IoTivity Constrained está designado como un componente dentro del directorio iotivity, en el mismo está el directorio adapter en el cual se desarrolla el port así como el adaptador ip para el dispositivo, según las especificaciones en iotivity-constrained/port/oc_config.h</p>
+<aside class="special"><p>Es importante tomar en cuenta la implementación del adapter puesto que esta será la base para poder conectarse a las interfaces de IoTivity de forma correcta. </p>
+</aside>
+<h2>Código de la aplicación</h2>
+<p>Para empezar vamos a ubicar nuestras aplicaciones en el directorio main, dentro crearemos un directorio para separar nuestra aplicación de las demás que se ubican en ese directorio</p>
+<p>Crearemos un archivo C llamado esp32_blinker_server.c.</p>
+<h3>Partes comunes entre aplicaciones</h3>
+<p><strong>Dependencias</strong></p>
+<p>Para esta aplicación se necesitarán múltiples dependencias dependiendo del rol que se tenga, en este caso se mostrarán las del servidor:</p>
+<pre><code>#include &lt;pthread.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+
+#include &#34;freertos/FreeRTOS.h&#34;
+#include &#34;freertos/semphr.h&#34;
+#include &#34;freertos/task.h&#34;
+#include &#34;freertos/event_groups.h&#34;
+#include &#34;nvs.h&#34;
+#include &#34;nvs_flash.h&#34;
+#include &#34;esp_wifi.h&#34;
+#include &#34;esp_event_loop.h&#34;
+#include &#34;esp_log.h&#34;
+#include &#34;driver/gpio.h&#34;
+#include &#34;debug_print.h&#34;
+#include &#34;esp_err.h&#34;
+
+#include &#34;security/oc_svr.h&#34;
+#include &#34;security/oc_tls.h&#34;
+#include &#34;api/oc_events.h&#34;
+#include &#34;config.h&#34;
+#include &#34;oc_api.h&#34;
+#include &#34;port/oc_clock.h&#34;
+#include &#34;security/oc_acl.h&#34;
+#include &#34;oc_buffer.h&#34;
+#include &#34;oc_core_res.h&#34;
+#include &#34;security/oc_cred.h&#34;
+#include &#34;security/oc_pstat.h&#34;
+#include &#34;oc_introspection.h&#34;</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Las dependencias se han ordenado en grupos, el primer grupo es para manejar tipos de datos.</p>
+<p>El segundo bloque es para manejar multithreading, de las cuales las dependencias claves son:</p>
+<p><em>freertos/FreeRTOS.h</em> : Inclusión de set de configuración para correr freeRTOS en ESP32.</p>
+<p><em>freertos/task.h</em>:  Para proveer de funcionalidades de multitasking </p>
+<p><em>esp_system.h</em>: Configuración de los periféricos en un sistema ESP, para poder tener la inicialización.</p>
+<p>El tercer bloque corresponde a las dependencias de IoTivity constrained</p>
+</aside>
+<p><strong>App_main</strong></p>
+<p>Cada proyecto en ESP-IDF contiene una función app_main(void), la cual es llamada y ejecutada de forma perpetua por el ESP32.</p>
+<p>Dentro de esta función se generan las Task functions, procedentes de ESP-IDF FreeRTOS la cual es una versión modificada de vanilla FreeRTOS la cual soporta multiprocesamiento simétrico. ESP-IDF FreeRTOS se basa en el port Xtensa de FreeRTOS v8.2.0. </p>
+<p>La función xTaskCreate permite crear una<a href="https://www.freertos.org/a00015.html" target="_blank">task</a> y agregarla a la lista de espera de task que se vayan a ejecutar.</p>
+<aside class="warning"><p><strong>No obstante previo a </strong>app_main <strong>ocurren otros pasos previos los cuales se detallan en este </strong><a href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/general-notes.html" target="_blank"><strong>apartado</strong></a><strong>, pero no son intervenidos por la naturaleza de la aplicación que se desarrolle</strong></p>
+</aside>
+<p><strong>Función app_main:</strong></p>
+<pre><code>void app_main(void)
+{
+   if (nvs_flash_init() != ESP_OK){
+       print_error(&#34;nvs_flash_init failed&#34;);
+   }
+
+   pthread_cond_init(&amp;cv, NULL);
+
+   print_macro_info();
+
+   initialise_wifi();
+
+   configuration_set();
+
+   if ( xTaskCreate(&amp;start_server, &#34;server_main&#34;, 15*1024, NULL, 5, NULL) != pdPASS ) {
+       print_error(&#34;task create failed&#34;);
+   }
+       //create a queue to handle gpio event from isr
+   gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+   //start gpio task
+   if(xTaskCreate(&amp;gpio_manage, &#34;gpio_task_example&#34;, 2048, NULL, 10, NULL)!=pdPASS){
+     print_error(&#34;pins task created failed\n&#34;);
+   };
+} </code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p><strong>Inicialización por Flash: nvs_flash_init()</strong>: El módulo ESP32 corre código proveniente de un flash externo</p>
+<p><a href="https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/system/freertos.html#_CPPv211xTaskCreate14TaskFunction_tPCKcK8uint32_tPCv11UBaseType_tPC12TaskHandle_t" target="_blank"><strong>xTaskCreate()</strong></a>: El primer parámetro es la dirección de la función que se ejecutará cuando está task esté en línea para ser ejecutada, el segundo parámetro es el nombre de la función <code>server_main</code> es el nombre que se le dará al task. Puede ser cualquier nombre. Es usado en el momento de debugging. El siguiente parámetro es usado para la memoria que se aloja para la task en términos de word (2 Bytes).</p>
+<p><a href="https://linux.die.net/man/3/pthread_cond_init" target="_blank"><strong><code>pthread_cond_init(&amp;cv, NULL)</code></strong></a><strong><code>:</code></strong> Inicializa y destruye variables condicionales</p>
+<p><strong><code>print_macro_info():</code></strong> Muestra las configuraciones iniciales que se han realizado.</p>
+<p><strong><code>initialise_wifi():</code></strong> Permite conectarse a una red de Wi-Fi</p>
+<p><strong><code>configuration_set():</code></strong>Configuración inicial para el GPIO</p>
+</aside>
+<p><strong>Event handler</strong></p>
+<pre><code>static esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+   switch (event-&gt;event_id) {
+   case SYSTEM_EVENT_STA_START:
+     printf(&#34;Server started\n&#34;);
+       esp_wifi_connect();
+       break;
+
+   case SYSTEM_EVENT_STA_GOT_IP:
+       xEventGroupSetBits(wifi_event_group, IPV4_CONNECTED_BIT);
+       heap_caps_print_heap_info(MALLOC_CAP_32BIT);
+       printf(&#34;got ip new\n&#34;);
+       break;
+
+   case SYSTEM_EVENT_STA_DISCONNECTED:
+       /* This is a workaround as ESP32 WiFi libs don&#39;t currently
+          auto-reassociate. */
+       esp_wifi_connect();
+       xEventGroupClearBits(wifi_event_group, IPV4_CONNECTED_BIT);
+#ifndef OC_IPV4
+       xEventGroupClearBits(wifi_event_group, IPV6_CONNECTED_BIT);
+#endif
+       break;
+
+   case SYSTEM_EVENT_STA_CONNECTED:
+       tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
+       printf(&#34;link local\n&#34;);
+       break;
+
+   case SYSTEM_EVENT_GOT_IP6:
+       xEventGroupSetBits(wifi_event_group, IPV6_CONNECTED_BIT);
+       break;
+
+   default:
+       break;
+   }
+
+   return ESP_OK;
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Esta función permite la conexión y reconexión a la red de Wi-Fi que se definieron la contraseña y SSID, dentro de la cual el dispositivo se comunicará con otros.</p>
+</aside>
+<p><strong>Initialize_wifi:</strong></p>
+<pre><code>void initialise_wifi(void)
+{
+   wifi_event_group = xEventGroupCreate();
+
+   tcpip_adapter_init();
+   ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+
+   ESP_ERROR_CHECK(esp_wifi_init(&amp;cfg));
+   ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+//   _again:
+   g_wifi_reconnect_flag = true;
+   wifi_config_t wifi_config;
+   memset(&amp;wifi_config, 0, sizeof(wifi_config));
+   memcpy(wifi_config.sta.password, EXAMPLE_WIFI_PASS, strlen(EXAMPLE_WIFI_PASS));
+   memcpy(wifi_config.sta.ssid, EXAMPLE_WIFI_SSID, strlen(EXAMPLE_WIFI_SSID));
+   int i;
+   for(i=strlen(EXAMPLE_WIFI_SSID); i&lt;32; i++) { wifi_config.sta.ssid[i] = &#39;\0&#39;; }
+   for(i=strlen(EXAMPLE_WIFI_PASS); i&lt;64; i++) { wifi_config.sta.password[i] = &#39;\0&#39;; }
+
+   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &amp;wifi_config) );
+   ESP_ERROR_CHECK(esp_wifi_start() );
+
+   vTaskDelay(5000/portTICK_PERIOD_MS);
+
+   ESP_LOGI(TAG, &#34;wifi_init_sta finished.&#34;);
+   ESP_LOGI(TAG, &#34;connect to ap SSID:%s password:%s&#34;,
+            EXAMPLE_WIFI_SSID, EXAMPLE_WIFI_PASS);
+}
+ </code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Función creada para establecer la conexión WiFi</p>
+</aside>
+<p><strong>Variables estáticas</strong></p>
+<pre><code>/*********Initialization of POSIX SEMAPHORES***********/
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
+static bool quit, plugs = false;
+
+/*******Variables used for server&amp;client conections***********/
+static EventGroupHandle_t wifi_event_group;
+static const int IPV4_CONNECTED_BIT = BIT0;
+static const int IPV6_CONNECTED_BIT = BIT1;
+
+
+
+static void
+signal_event_loop(void)
+{
+ pthread_mutex_lock(&amp;mutex);
+ pthread_cond_signal(&amp;cv);
+ pthread_mutex_unlock(&amp;mutex);
+}
+
+static void
+handle_signal(int signal)
+{
+ (void)signal;
+ signal_event_loop();
+ quit = 1;
+}</code></pre>
+<h2><strong>Explicación:</strong></h2>
+<aside class="special"><p>mutex, cv: Semáforos para evitar condiciones de carrera usados en oc_handler_t, el manejador de los eventos de comunicación de IoTivity</p>
+<p>static const int IPV4_CONNECTED_BIT, static const int IPV6_CONNECTED_BIT: Variables para establecer la conexión para obtener IPV4 e IPV6</p>
+</aside>
+<h2><strong>Partes de la aplicación-Lado del Servidor</strong></h2>
+<p><strong>start_server:</strong></p>
+<pre><code>static int
+start_server(void)
+{
+
+ /*Get IPV4 Adress*/
+ int init;
+ tcpip_adapter_ip_info_t ip4_info = { 0 };
+ struct ip6_addr if_ipaddr_ip6 = { 0 };
+ ESP_LOGI(TAG, &#34;iotivity server task started&#34;);
+ // wait to fetch IPv4 &amp;&amp; ipv6 address
+ #ifdef OC_IPV4
+   xEventGroupWaitBits(wifi_event_group, IPV4_CONNECTED_BIT, false, true, portMAX_DELAY);
+ #else
+   xEventGroupWaitBits(wifi_event_group, IPV4_CONNECTED_BIT | IPV6_CONNECTED_BIT, false, true, portMAX_DELAY);
+ #endif
+
+ if ( tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &amp;ip4_info) != ESP_OK) {
+     print_error(&#34;get IPv4 address failed&#34;);
+ } else {
+     ESP_LOGI(TAG, &#34;got IPv4 addr:%s&#34;, ip4addr_ntoa(&amp;(ip4_info.ip)));
+ }
+
+#ifndef OC_IPV4
+ if ( tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipaddr_ip6) != ESP_OK) {
+     print_error(&#34;get IPv6 address failed&#34;);
+ } else {
+     ESP_LOGI(TAG, &#34;got IPv6 addr:%s&#34;, ip6addr_ntoa(&amp;if_ipaddr_ip6));
+ }
+#endif
+
+ int ret;
+ static const oc_handler_t handler = {    .init = app_init,
+         .signal_event_loop = signal_event_loop,
+         .register_resources = register_resources };
+  oc_clock_time_t  next_event;
+
+ #ifdef OC_SECURITY
+ oc_storage_config(&#34;./server_creds&#34;);
+ #endif
+
+ ret = oc_main_init(&amp;handler);
+ if (ret &lt; 0)
+   return ret;
+
+ pthread_mutex_init(&amp;mutex, NULL);
+ pthread_cond_init(&amp;cv, NULL);
+
+ while (quit != true) {
+   struct timespec ts;
+
+   next_event = oc_main_poll();
+   pthread_mutex_lock(&amp;mutex);
+   if (next_event == 0) {
+     pthread_cond_wait(&amp;cv, &amp;mutex);
+   } else {
+     ts.tv_sec = (next_event / OC_CLOCK_SECOND);
+     ts.tv_nsec = (next_event % OC_CLOCK_SECOND) * 1.e09 / OC_CLOCK_SECOND;
+     pthread_cond_timedwait(&amp;cv, &amp;mutex, &amp;ts);
+   }
+
+   pthread_mutex_unlock(&amp;mutex);
+ }
+
+ oc_main_shutdown();
+ pthread_cond_destroy(&amp;cv);
+ pthread_mutex_destroy(&amp;mutex);
+
+ return 0;
+}
+
+</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p><strong>static const oc_handler_t handler</strong>: event handler creado para comunicar con las funciones que responden a los eventos de GET, POST, PUT, OBSERVE entre otros, los cuales se definen previamente </p>
+<p><a href="https://www.freertos.org/xEventGroupWaitBits.html" target="_blank"><strong>xEventGroupWaitBits</strong></a><strong>: </strong>espera por una bandera, la cual en este caso es una de las definidas previamente para tener conexión IPV4 o IPV6</p>
+<p><a href="http://esp32.info/docs/esp_idf/html/d7/d5d/tcpip__adapter_8h.html#a6f3f0fdffc119d7e16682bd9e3ea476b" target="_blank"><strong>tcpip_adapter_get_ip_info</strong></a><strong>: </strong>toma la información de ip del paquete que se recibe</p>
+<p><a href="https://github.com/espressif/esp-idf/blob/master/components/tcpip_adapter/tcpip_adapter_lwip.c" target="_blank"><strong>tcpip_adapter_get_ip6_linklocal</strong></a><strong>: </strong>toma la información respecto a la ipv6 del paquete recibido </p>
+<p><strong>oc_storage_config: </strong>reserva un espacio donde colocar las credenciales de seguridad</p>
+<p><strong>oc_main_init:  </strong>inicia la función que se encarga de determinar los callbacks que se ejecutarán ante los distintos requerimientos</p>
+<p><strong>oc_main_poll: </strong>devuelve el tiempo absoluto del siguiente evento puesto en línea</p>
+</aside>
+<p><strong>register_resources:</strong></p>
+<pre><code>static void
+register_resources(void)
+{
+   oc_resource_t *res = oc_new_resource(&#34;plug&#34;,&#34;/plug/1&#34;,1,0);
+   oc_string_t *stringi;
+   oc_free_string(&amp;(res-&gt;name));
+   oc_new_string(&amp;(res-&gt;name), PROTO_INDEP_ID, strlen(PROTO_INDEP_ID));
+   oc_resource_bind_resource_type(res, &#34;oic.r.switch.binary&#34;);
+   oc_resource_bind_resource_interface(res, OC_IF_RW);
+   oc_resource_set_default_interface(res, OC_IF_RW);
+   oc_resource_set_discoverable(res, true);
+   oc_resource_set_observable(res,true);
+   oc_resource_set_periodic_observable(res, 1);
+   oc_resource_set_request_handler(res, OC_GET, get_plug, NULL);
+   oc_resource_set_request_handler(res,OC_POST,post_plug, NULL);
+   oc_resource_set_request_handler(res,OC_PUT, put_plug, NULL);
+   oc_add_resource(res);
+ }
+</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>oc_new_resource: agrega un nuevo recurso al con su propio URI en el dispositivo</p>
+<p>oc_resource_bind_type: define el tipo de dispositivo según los estándares de la OCF</p>
+<p>Oc_bind_resource_interface: se conecta la interfase para el dispositivo  </p>
+<p>oc_resource_set_interface: setea la interfase para el dispositivo por defecto se define OC_IR_RW</p>
+<p>oc_resource_set_observable: se define si el dispositivo se puede observar en la red</p>
+<p>oc_resource_set_periodic_observable: determina si el dispositivo es posible de encontrar en la red</p>
+<p>oc_resource_set_request_handler: define una función que servirá como callback en el caso de que ocurra un request de POST. GET. PUT, según las banderas que se determinen</p>
+<p>oc_add_resource: añade el recurso en el dispositivo</p>
+</aside>
+<p><strong>app_init:</strong></p>
+<pre><code>static int
+app_init(void)
+{
+ int r = oc_init_platform(&#34;Intel&#34;, NULL, NULL);
+ if (r != 0)
+   return r;
+
+ r |=  oc_add_device(&#34;/oic/d&#34;, &#34;oic.d.plug&#34;, &#34;Left Wall&#34;, &#34;ocf.1.0.0&#34;,
+     &#34;ocf.res.1.0.0&#34;, set_device_custom_property, NULL);
+ oc_str_to_uuid(PROTO_INDEP_ID,oc_core_get_device_id(r));
+  return r;
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>oc_init_platform: inicializa el dispositivo y el tipo que es</p>
+<p>oc_add_device: agrega un dispositivo a la plataforma de iotivity</p>
+<p>oc_str_to_uuid: sirve para definir el UUID del dispositivo de IoTivity, la variable PROTO_INDEP_ID fue definida previamente</p>
+<p>oc_core_get_device: permite obtener la id del dispositivo según su número</p>
+</aside>
+<p><strong>set_device_custom_property:</strong></p>
+<pre><code>static void
+set_device_custom_property(void *data)
+{
+ (void)data;
+ oc_set_custom_device_property(purpose, &#34;smart plug&#34;);
+ oc_set_custom_device_property(piid, PROTO_INDEP_ID);
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>oc_set_custom_device_property: sirve para agregar una nueva propiedad al dispositivo según nuestras preferencias</p>
+</aside>
+<p><strong>get_plug:</strong></p>
+<pre><code>static void
+get_plug(oc_request_t *request, oc_interface_mask_t interface, void *user_data)
+{
+ oc_rep_start_root_object();
+ PRINT(&#34;GET_plug_state request:\n&#34;);
+ switch (interface) {
+   case OC_IF_BASELINE:
+     oc_process_baseline_interface(request-&gt;resource);
+   case OC_IF_RW:
+     oc_rep_set_boolean(root, state, plugs);
+     break;
+   default:
+     break;
+ }
+ oc_rep_end_root_object();
+ oc_send_response(request, OC_STATUS_OK);
+ PRINT(&#34;Plug state %d\n&#34;, plugs);
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Función que responde a un GET request.</p>
+<p>oc_rep_start_root_object: se coloca al inicio del resto de la función llama a oc_get_query_value() para acceder a cualquier uri-query</p>
+<p>oc_process_baseline_interface: define el recurso basado en el request</p>
+<p>oc_send_response: envía el mensaje de respuesta al evento hacia el cliente que hizo el request, en este caso se envía un mensaje de OC_STATUS_OK, si se ha recibido correctamente la información  </p>
+</aside>
+<p><strong>post_plug:</strong></p>
+<pre><code>static void
+post_plug(oc_request_t *request, oc_interface_mask_t interface, void *user_data)
+{
+ (void)user_data;
+ (void)interface;
+ PRINT(&#34;POST PLUG&#39;S STATE:\n&#34;);
+ bool state = false;
+ double voltage = 0;
+ oc_rep_t *res = request-&gt;request_payload;
+
+ while(res!=NULL){
+   switch(res-&gt;type){
+   case OC_REP_BOOL:                     //order to plugin or plugout
+     state = res-&gt;value.boolean;
+     PRINT(&#34;ON/OFF PLUG VALUE: %d\n&#34;, state);
+     manage_plug_up_down(state);
+     break;
+   case OC_REP_INT:
+     voltage = res-&gt;value.double_p;
+     PRINT(&#34;SETTING PLUG&#39;S VOLTAGE\n&#34;);
+     manage_plug_adc(voltage);
+     vTaskDelay(50);
+     break;
+   default:
+     oc_send_response(request, OC_STATUS_BAD_REQUEST);
+     return;
+     break;
+   }
+   res=res-&gt;next;
+ }
+ oc_send_response(request, OC_STATUS_CHANGED);
+ plugs =state;
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Función que responde a un evento request de POST, envía un mensaje de OC_STATUS_BAD_REQUEST en caso de haber un fallo o un estatus de OC_STATUS_CHANGED en caso de haber sido exitoso.</p>
+</aside>
+<p><strong>put_plug:</strong></p>
+<pre><code>static void
+put_plug(oc_request_t *request, oc_interface_mask_t interface,
+          void *user_data)
+{
+ post_plug(request, interface, user_data);
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Esta función llama a la función post_plug en caso de haber un PUT request</p>
+</aside>
+<h2><strong>Partes de la aplicación- Lado del cliente</strong></h2>
+<p><strong>app_init:</strong></p>
+<pre><code>static int
+app_init(void)
+{
+ int ret = oc_init_platform(&#34;Intel Corporation&#34;, NULL, NULL);
+ ret |= oc_add_device(&#34;/oic/d&#34;, &#34;oic.wk.d&#34;, &#34;Generic Client&#34;, &#34;ocf.1.0.0&#34;,
+                      &#34;ocf.res.1.3.0&#34;, NULL, NULL);
+ return ret;
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>LLena de una plataforma o un dispositivo estándar por medio de las funciones oc_inti_platform y oc_add_device</p>
+</aside>
+<p><strong>issue_request:</strong></p>
+<pre><code>static void
+issue_request(void)
+{
+ oc_do_ip_discovery(&#34;oic.r.plug&#34;, &amp;discovery_cb, NULL);
+}
+</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>oc_do_ip_discovery: función que busca en la red a los dispositivos que contengan el recurso que se ha definido en el uri, y realiza la acción que se defina en la función discovery_cb</p>
+</aside>
+<p><strong>discovery_cb:</strong></p>
+<pre><code>static oc_discovery_flags_t
+discovery_cb(const char *di, const char *uri, oc_string_array_t types,
+            oc_interface_mask_t interfaces, oc_endpoint_t *server,
+            oc_resource_properties_t bm, void *user_data)
+{
+ (void)bm;
+ (void)di;
+ (void)interfaces;
+ (void)user_data;
+ int uri_len = strlen(uri);
+ int i;
+ static int pos = 0;
+ PRINT(&#34;ID del device %s\n&#34;, di);
+ uri_len = (uri_len&gt;=MAX_URI_LENGTH)? MAX_URI_LENGTH-2:uri_len;
+ for (i = 0; i &lt; (int)oc_string_array_get_allocated_size(types); i++) {
+   int ret;
+   char *rt = oc_string_array_get_item(types, i);
+
+   if (strlen(rt) == 10 &amp;&amp; strncmp(rt, &#34;oic.r.plug&#34;, 10) == 0){
+     strncpy(light_1,uri,uri_len);
+     light_1[uri_len]=&#39;\0&#39;;
+     plug_server = server;
+     PRINT(&#34;Resource %s hosted at endpoints:\n&#34;, light_1);
+     oc_endpoint_t *endo = server;
+     while(endo!=NULL){
+       PRINTipaddr(*endo);
+       PRINT(&#34;\n&#34;);
+       endo = endo-&gt;next;
+   }
+
+   oc_do_observe(light_1, plug_server, NULL, &amp;observe_plug, LOW_QOS, NULL);
+   oc_set_delayed_callback(NULL, &amp;stop_observe, 15);
+   //ret = oc_do_get(uri, server, NULL, check_resource_cb, HIGH_QOS, user_data);
+   PRINT(&#34;Get response values of %s al endpoint:\n&#34;,light_1);
+   pos++;
+   //if (!ret)
+     //exit(EXIT_FAILURE);
+   return OC_STOP_DISCOVERY;
+   }
+ }
+ oc_free_server_endpoints(server);
+ return OC_CONTINUE_DISCOVERY;
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Realiza la búsqueda del dispositivo que se definió en la función issue_request, y en el caso de hallarlo realiza un GET request, en caso de no hallarlo sigue realizando la búsqueda en la red hasta que se acabe el tiempo del timer</p>
+</aside>
+<p><strong>observe_plug:</strong></p>
+<pre><code>static void
+observe_plug(oc_client_response_t *data){
+ PRINT(&#34;OBSERVING PLUG\n&#34;);
+  oc_rep_t *rep = data-&gt;payload;
+ while (rep != NULL) {
+   PRINT(&#34;key %s, value &#34;, oc_string(rep-&gt;name));
+   switch (rep-&gt;type) {
+   case OC_REP_BOOL:
+     PRINT(&#34;%d\n&#34;, rep-&gt;value.boolean);
+     plugs = rep-&gt;value.boolean;
+     break;
+   default:
+     break;
+   }
+   rep = rep-&gt;next;
+ }
+ if(oc_init_post(light_1, plug_server, NULL, &amp;post_plug, LOW_QOS, NULL)){
+     oc_rep_start_root_object();
+     oc_rep_set_boolean(root, state, plug_state);
+     oc_rep_end_root_object();
+     PRINT(&#34;DOING POST\n&#34;);
+    if(oc_do_post()){
+     PRINT(&#34;SENT SIGNAL\n&#34;);
+   }else{
+     PRINT(&#34;ERROR\n&#34;);
+   }
+ }else{
+   PRINT(&#34;CANNOT init POST\n&#34;);
+ }
+}</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Función que realiza un OBSERVE request</p>
+</aside>
+<p><strong>post_plug:</strong></p>
+<pre><code>static void
+post_plug(oc_client_response_t *data){
+ PRINT(&#34;PLUG_STATUS: \n&#34;);
+ if(data-&gt;code==OC_STATUS_CHANGED){
+   PRINT(&#34;STATUS CHANGED\n&#34;);
+ }else{
+   PRINT(&#34;RESPONSE IS %d\n&#34;,data-&gt;code);
+ }</code></pre>
+<p><strong>Explicación:</strong></p>
+<aside class="special"><p>Función que realiza un post request</p>
+</aside>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Configuración y construcción de aplicación" duration="0">
+        <p>Estando en la terminal podemos acceder al entorno gráfico de configuración con:</p>
+<aside class="special"><p><code>make menuconfig</code></p>
+</aside>
+<p>Dentro configuraremos las opciones de puerto serial en la sección de <strong>Serial flasher config</strong></p>
+<p><img style="max-width: 624.00px" src="img/c49f8b80ee60a5d2.png"></p>
+<p><img style="max-width: 624.00px" src="img/d2426fc29e931746.png"></p>
+<p>En este caso se ha designado a /dev/ttyUSSB0 como el puerto serial al que se ha conectado el ESP32</p>
+<aside class="special"><p>Si quiere saber que puertos seriales están conectados y detectar al cual se conectó su ESP32, desde la consola podrá ver todos los puertos con el comando <code>ls /dev/tty*</code></p>
+</aside>
+<h2><strong>IoTivity Example Configuration</strong></h2>
+<p>Una vez hecha la configuración para los puertos seriales, se agrega en la opción de construir y flashear la aplicación creada ahora en IoTivity Example Configuration, de la siguiente forma:</p>
+<ol type="1" start="1">
+<li>Nos dirigimos al archivo <strong>Kconfig.projbuild</strong>  dentro del directorio /iotexperimental/main/ y agregamos una nueva opción para la app creada</li>
+</ol>
+<pre><code>menu &#34;IoTivity Example Configuration&#34;
+
+config WIFI_SSID
+    string &#34;WiFi SSID&#34;
+        default &#34;myssid&#34;
+        help
+                SSID (network name) for the ESP32 to connect to.
+
+config WIFI_PASSWORD
+    string &#34;WiFi Password&#34;
+        default &#34;myssid&#34;
+        help
+                WiFi password (WPA or WPA2) for the ESP32 to match.
+                can be blank if the network has no security set.
+
+choice ESP32_IOTIVITY_MODE
+    prompt &#34;iotivity: mode select&#34;
+    default IOTIVITY_CLIENT
+    help
+        select iotivity mode(client/server/blinker_server).
+
+config IOTIVITY_CLIENT
+    bool &#34;iotivity client&#34;
+
+config IOTIVITY_SERVER
+    bool &#34;iotivity server&#34;
+
+config IOTIVITY_SERVER_BLINKER
+    bool &#34;iotivity server blinker&#34;
+
+endchoice
+
+config OC_DEBUG
+    bool &#34;OC_DEBUG&#34;
+    help
+        enable or disable IoTivity-constrained debug
+
+config APP_DEBUG
+    bool &#34;APP_DEBUG&#34;
+    help
+        enable or disable application debug
+
+config ENABLE_PLUG
+    bool &#34;ENABLE_PLUG&#34;
+    help
+        enable or disable plug options
+
+config ENABLE_LIGHT
+    bool &#34;ENABLE_LIGHT&#34;
+    help
+        enable or disable light
+
+config DYNAMIC
+    bool &#34;DYNAMIC&#34;
+    help
+        enable or disable DYNAMIC
+
+config SECURE
+    bool &#34;SECURE&#34;
+    help
+        enable or disable SECURE
+
+config IPV4
+    bool &#34;IPV4&#34;
+    help
+        enable or disable IPV4
+
+config TCP
+    bool &#34;TCP&#34;
+    help
+        enable or disable TCP
+
+endmenu
+</code></pre>
+<p>Se ha agregado la opción </p>
+<pre><code>config IOTIVITY_SERVER_BLINKER
+    bool &#34;iotivity server blinker&#34;</code></pre>
+<p>Y la opción blinker_server dentro del modo de selección</p>
+<pre><code>choice ESP32_IOTIVITY_MODE
+    prompt &#34;iotivity: mode select&#34;
+    default IOTIVITY_CLIENT
+    help
+        select iotivity mode(client/server/blinker_server).</code></pre>
+<ol type="1" start="2">
+<li>Dentro del archivo <strong>component.mk </strong>dentro del mismo directorio agregamos:</li>
+</ol>
+<pre><code># &#34;main&#34; pseudo-component makefile.
+#
+# (Uses default behaviour of compiling all source files in directory, adding &#39;include&#39; to include path.)
+
+ifdef CONFIG_IOTIVITY_CLIENT
+    COMPONENT_SRCDIRS += esp32_client
+endif
+
+ifdef CONFIG_IOTIVITY_SERVER
+    COMPONENT_SRCDIRS += esp32_server
+endif
+
+ifdef CONFIG_IOTIVITY_SERVER_BLINKER
+    COMPONENT_SRCDIRS += esp32_blinker_server
+endif
+
+COMPONENT_SRCDIRS += esp32_lightbulb
+
+COMPONENT_ADD_INCLUDEDIRS := esp32_lightbulb</code></pre>
+<p>Dentro del archivo escribimos el nombre de nuestro archivo.c el cual puede o no ser el mismo de nuestra app.</p>
+<p>En este caso se agregó:</p>
+<pre><code>ifdef CONFIG_IOTIVITY_SERVER_BLINKER
+    COMPONENT_SRCDIRS += esp32_blinker_server
+endif</code></pre>
+<aside class="special"><h3><strong>Sistema de construcción:</strong></h3>
+<p>Para poder profundizar acerca de la forma en cómo se compilan proyectos en ESP-IDF  visite el siguiente <a href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html" target="_blank">apartado</a></p>
+</aside>
+<ol type="1" start="3">
+<li>Ahora podemos correr nuevamente el menú de configuraciones:</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/7f469ae4c5479035.png"></p>
+<p>Dentro de <strong>iotivity: mode select </strong>están las opciones que nosotros queramos agregar</p>
+<h2><strong>Configurando Wi-Fi</strong></h2>
+<p>Para configurar la red a la que se conectará nuestro dispositivo, iremos al menú de configuración y dentro de la opción <strong>IoTivity Example Configuration </strong>definiremos la SSID como la contraseña de la red Wi-Fi</p>
+<p><img style="max-width: 624.00px" src="img/6cf5b68325319874.png"></p>
+<p><img style="max-width: 624.00px" src="img/ddaa6f37baecefe1.png"></p>
+<h2><strong>Forma de compilación con ESP-IDF</strong></h2>
+<p>ESP-IDF usa make para la construcción de proyectos en C.</p>
+<p>Tiene distintos comandos para configurar, compilar y hacer flash de la aplicación</p>
+<aside class="warning"><p><strong>make menuconfig</strong></p>
+<p><strong>make all</strong></p>
+<p><strong>make flash</strong></p>
+</aside>
+<p>La forma en que se construirá la aplicación no obstante, requerirá que hagamos configuraciones y cambios dentro de los makefiles y component.mk files de nuestro directorio.</p>
+<p>A grandes rasgos el sistema de compilación se maneja de la siguiente manera:</p>
+<ul>
+<li>Makefile principal: en este archivo se determinan las variables del proyecto así como variables de entorno, incluye también  <code>$(IDF_PATH)/make/project.mk</code> makefile en el cual se implementa el resto del sistema de construcción de ESP-IDF</li>
+<li>Sdkconfig: archivo de configuración el cuál es creado y actualizado cada vez que abrimos el menú de configuración con <code>make menuconfig</code>, contiene la configuración para todos los componentes del proyecto e incluso ESP-IDF</li>
+<li>Directorio components: contiene los componentes que son parte del proyecto</li>
+<li>Directorio main: es un pseudo componente que contiene el código de las aplicaciones creadas, main siendo el nombre por defecto</li>
+<li>Directorio build: es donde se contienen los archivos creados, contiene archivos de objetos, librerías y archivos binarios</li>
+</ul>
+<h2><strong>Agregando CFlags</strong></h2>
+<p>Para poder setear las banderas de construcción al momento de compilar volvemos a acceder a IoTivity Example Configuration dentro del menú de configuración</p>
+<p><img style="max-width: 624.00px" src="img/7f469ae4c5479035.png"></p>
+<p>Aquí podemos ver opciones como OC_DEBUG, APP_DEBUG, ENABLE_PLUG, ENABLE_LIGHT, DYNAMIC, SECURE, IPV4, entre otros.</p>
+<p>Para poder ver que banderas se activan al seleccionar cada opción, podemos acceder a Help.</p>
+<h2><strong>Flags de IoTivity Constrained</strong></h2>
+<p><code>SECURE=1</code> incluye la capa de OCF security y mbedTLS. </p>
+<p><code>DEBUG=1</code> habilita el debug mode con verbose debug output.</p>
+<p><code>TCP=1</code> incluye el soporte para endpoints de TCP endpoints y CoAP sobre TCP (RFC 8323) (a ser implementado dentro del adapter de ESP32)</p>
+<p><code>IPV4=1</code> incluye soporte IPv4 en la construcción y excluye IPV6. Excluir IPV4 agrega el soporte IPV6 (a ser implementado soporte para ambos al mismo tiempo)</p>
+<p>En este caso si quisiéramos agregar una CFLAG debemos seguir los mismos pasos de la sección IoTivity Example Configuration </p>
+<ul>
+<li>Para ilustrar se agregará la opción para agregar una PKI (private key input) la cual es necesaria habilitar cuando estemos estableciendo conexiones seguras</li>
+</ul>
+<p>Al final del archivo <strong>Kconfig.projbuild</strong> agregamos:</p>
+<aside class="warning"><p><strong><code>config PKI</code></strong></p>
+<p><strong><code>    bool &#34;PKI&#34;</code></strong></p>
+<p><strong><code>    help</code></strong></p>
+<p><strong><code>        enable or disable OC_PKI</code></strong></p>
+</aside>
+<p>En el archivo Makefile principal agregamos:  </p>
+<pre><code>#
+# This is a project Makefile. It is assumed the directory this Makefile resides in is a
+# project subdirectory.
+#
+
+export PROJECT_PATH := $(PWD)
+export IDF_PATH ?= $(PWD)/esp-idf
+
+ifeq ($(CLIENT), 1)
+    PROJECT_NAME := iotivity_client
+endif
+
+ifeq ($(SERVER), 1)
+    PROJECT_NAME := iotivity_server
+endif
+##
+##
+ifeq ($(BLINKERCLIENT),1)
+   PROJECT_NAME := esp32_blinker_client
+endif
+
+ifeq ($(BLINKERSERVER),1)
+   PROJECT_NAME := esp32_blinker_server
+endif
+
+PROJECT_NAME ?= esp32_iotivity
+
+include $(IDF_PATH)/make/project.mk
+
+# sdkconfig is included project.mk recursively
+# after setting sdkconfig done, start user layer macro define
+ifdef CONFIG_IOTIVITY_CLIENT
+   CFLAGS += -DOC_CLIENT
+endif
+
+ifdef CONFIG_IOTIVITY_SERVER
+   CFLAGS += -DOC_SERVER
+endif
+
+ifdef CONFIG_IOTIVITY_CLIENT_BLINKER
+   CFLAGS += -DOC_CLIENT
+endif
+
+ifdef CONFIG_IOTIVITY_SERVER_BLINKER
+   CFLAGS += -DOC_SERVER
+endif
+
+ifdef CONFIG_OC_DEBUG
+   CFLAGS += -DOC_DEBUG
+endif
+
+ifdef CONFIG_APP_DEBUG
+   CFLAGS += -DAPP_DEBUG
+endif
+
+ifdef CONFIG_ENABLE_LIGHT
+   CFLAGS += -DENABLE_LIGHT
+endif
+
+ifdef CONFIG_DYNAMIC
+   CFLAGS += -DOC_DYNAMIC_ALLOCATION
+endif
+
+ifdef CONFIG_SECURE
+   CFLAGS += -DOC_SECURITY
+endif
+
+ifdef CONFIG_IPV4
+   CFLAGS += -DOC_IPV4
+endif
+
+ifdef CONFIG_TCP
+   CFLAGS += -DOC_TCP
+endif
+
+
+ifdef CONFIG_PKI
+   CFLAGS += -DOC_PKI
+   CFLAGS += -DMBEDTLS_X509_EXPANDED_SUBJECT_ALT_NAME_SUPPORT
+   CFLAGS += -DMBEDTLS_SHA256_C
+   CFLAGS += -DMBEDTLS_ECP_DP_SECP256R1_ENABLED
+   CFLAGS += -DMBEDTLS_RSA_C
+   CFLAGS += -DMBEDTLS_ECDSA_C
+   CFLAGS += -DMBEDTLS_CERTS_C
+endif
+</code></pre>
+<p>Como se puede observar al activar PKI, no solo se agrega la CFLAG OC_PKI, en cambio es posible añadir múltiples CFLAGS con una sola opción</p>
+<p><code>En este caso agregamos</code></p>
+<pre><code>ifdef CONFIG_PKI
+   CFLAGS += -DOC_PKI
+   CFLAGS += -DMBEDTLS_X509_EXPANDED_SUBJECT_ALT_NAME_SUPPORT
+   CFLAGS += -DMBEDTLS_SHA256_C
+   CFLAGS += -DMBEDTLS_ECP_DP_SECP256R1_ENABLED
+   CFLAGS += -DMBEDTLS_RSA_C
+   CFLAGS += -DMBEDTLS_ECDSA_C
+   CFLAGS += -DMBEDTLS_CERTS_C
+endif</code></pre>
+<h2>Probando la aplicación</h2>
+<p>Para probar nuestra aplicación simplemente desde la consola, una vez conectado nuestro ESP32 al puerto serial y habiendo configurado la red, y las CFLAGS que queremos tener, en este caso se ha dejado la siguiente configuración:</p>
+<p><img style="max-width: 624.00px" src="img/56fdf82ca5a835f5.png"></p>
+<p>Dentro de la consola escribimos</p>
+<pre><code>make BLINKERSERVER=1 flash monitor</code></pre>
+<p>Agregar BLINKERSERVER=1 no hace nada más que ponerle nombre a nuestra app, más no influye en ningún aspecto de la aplicación, agregar <code>flash monitor</code> nos permite ver en la terminal como actúa la aplicación así como nos facilita el proceso de Debugging </p>
+<p>Una vez hecho esto nuestra aplicación ya se habrá cargado en nuestro ESP32 y ya tendremos nuestro dispositivo ESP32 que se comunica usando IoTivity.</p>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Port de Iotivity Constrained para ESP32" duration="0">
+        <p>Actualmente IoTivity constrained soporta arquitecturas Linux, Contiki, FreeRTOS, RioT, TizenRT, OpenThread, Android y Windows y zephyr.</p>
+<p>Las opciones de configuración para una aplicación están seteadas en <code>oc_config.h,</code> la cual debe ser agregada en los include paths.</p>
+<p>No obstante la configuración para este proyecto se ha agregado en el archivo config.h dentro del directorio <code>components/iotivity/adapter/src</code></p>
+<h2><strong>Estructura del port</strong></h2>
+<p>Nuestro port para ESP32 se ha definido en el directorio components/iotivity/adapter, en él se definirán las configuraciones determinadas en el archivo <code>oc_config.h</code></p>
+<p>La estructura de nuestro directorio adapter es la siguiente</p>
+<pre><code>- adapter/
+             - include/
+                           - config.h
+                           - debug_print.h
+                           - esp_ipconfig.h
+                           - esp32_sys_socket.h
+
+             - src/        - abort.c
+                           - clock.c
+                           - debug_print.c
+                           - ipadapter.c
+                           - random.c
+                           - storage.c</code></pre>
+<h2><strong>IPAdapter</strong></h2>
+<p>Una de las partes esenciales para poder adaptar IoTivity es el ipAdapter, ya que en esta parte definiremos las funciones que se encarguen de recibir los paquetes en UDP de forma segura y no segura en la red, determinar los eventos de red,  encontrar una ip dentro de la red para el dispositivo, enviar paquetes hacia un cliente o un servidor.</p>
+<p>Haciendo uso de las configuraciones en tiempo real establecidas en <code>oc_config.h</code> las cuales se definen nuevamente en config.h</p>
+<p>Las funciones principales de IPAdapter son:</p>
+<h3><strong>oc_connectivity_init:</strong></h3>
+<pre><code>int oc_connectivity_init(size_t device) {
+ OC_DBG(&#34;Initializing connectivity for device %d\n&#34;, device);
+#ifdef OC_DYNAMIC_ALLOCATION
+ ip_context_t *dev = (ip_context_t *)calloc(1, sizeof(ip_context_t));
+ if (!dev) {
+   oc_abort(&#34;Insufficient memory&#34;);
+ }
+ oc_list_add(ip_contexts, dev);
+#else  /* OC_DYNAMIC_ALLOCATION */
+ ip_context_t *dev = &amp;devices[device];
+#endif /* !OC_DYNAMIC_ALLOCATION */
+ dev-&gt;device = device;
+#ifndef OC_IPV4
+ dev-&gt;device = device;
+ OC_LIST_STRUCT_INIT(dev, eps);
+
+ memset(&amp;dev-&gt;mcast, 0, sizeof(struct sockaddr_storage));
+ memset(&amp;dev-&gt;server, 0, sizeof(struct sockaddr_storage));
+
+ struct sockaddr_in6 *m = (struct sockaddr_in6 *)&amp;dev-&gt;mcast;
+ m-&gt;sin6_family = AF_INET6;
+ m-&gt;sin6_port = htons(OCF_PORT_UNSECURED);
+ m-&gt;sin6_addr = in6addr_any;
+ int err = 0;
+ struct ip6_addr if_ipaddr = { 0 };
+
+ struct sockaddr_in6 *l = (struct sockaddr_in6 *)&amp;dev-&gt;server;
+ l-&gt;sin6_family = AF_INET6;
+
+ err = tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipaddr);
+ if (err != ESP_OK) {
+     print_error(&#34;get ip6 ret:%d\n&#34;, err);
+ }
+ inet6_addr_from_ip6addr(&amp;l-&gt;sin6_addr, &amp;if_ipaddr);
+
+ l-&gt;sin6_port = 0;
+
+#ifdef OC_SECURITY
+ memset(&amp;dev-&gt;secure, 0, sizeof(struct sockaddr_storage));
+ struct sockaddr_in6 *sm = (struct sockaddr_in6 *)&amp;dev-&gt;secure;
+ sm-&gt;sin6_family = AF_INET6;
+ sm-&gt;sin6_port = htons(OCF_PORT_SECURE);
+ //sm-&gt;sin6_port = 0;
+ sm-&gt;sin6_addr = in6addr_any;
+#endif /* OC_SECURITY */
+
+ dev-&gt;server_sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+ dev-&gt;mcast_sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+ if (dev-&gt;server_sock &lt; 0 || dev-&gt;mcast_sock &lt; 0) {
+   OC_ERR(&#34;creating server sockets\n&#34;);
+   return -1;
+ }
+
+#ifdef OC_SECURITY
+ dev-&gt;secure_sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+ if (dev-&gt;secure_sock &lt; 0) {
+   OC_ERR(&#34;creating secure socket\n&#34;);
+   return -1;
+ }
+#endif /* OC_SECURITY */
+
+ int opt = 1;
+ if (setsockopt(dev-&gt;server_sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &amp;opt,
+                sizeof(opt)) == -1) {
+   OC_ERR(&#34;setting recvpktinfo option %d\n&#34;, errno);
+   return -1;
+ }
+ if (setsockopt(dev-&gt;server_sock, IPPROTO_IPV6, IPV6_V6ONLY, &amp;opt,
+                sizeof(opt)) == -1) {
+   OC_ERR(&#34;setting sock option %d\n&#34;, errno);
+   return -1;
+ }
+ if (setsockopt(dev-&gt;server_sock, SOL_SOCKET, SO_REUSEADDR, &amp;opt, sizeof(opt)) ==
+     -1) {
+   OC_ERR(&#34;setting reuseaddr option %d&#34;, errno);
+   return -1;
+ }
+ if (bind(dev-&gt;server_sock, (struct sockaddr *)&amp;dev-&gt;server,
+          sizeof(dev-&gt;server)) == -1) {
+   OC_ERR(&#34;binding server socket %d\n&#34;, errno);
+   return -1;
+ }
+
+ socklen_t socklen = sizeof(dev-&gt;server);
+ if (getsockname(dev-&gt;server_sock, (struct sockaddr *)&amp;dev-&gt;server,
+                 &amp;socklen) == -1) {
+   OC_ERR(&#34;obtaining server socket information %d\n&#34;, errno);
+   return -1;
+ }
+
+ dev-&gt;port = ntohs(l-&gt;sin6_port);
+
+ if (configure_mcast_socket(dev-&gt;mcast_sock, AF_INET6) &lt; 0) {
+   return -1;
+ }
+
+ int reuse = 1;
+ if (setsockopt(dev-&gt;mcast_sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &amp;reuse,
+                sizeof(reuse)) == -1) {
+   OC_ERR(&#34;setting recvpktinfo option %d\n&#34;, errno);
+   return -1;
+ }
+ if (setsockopt(dev-&gt;mcast_sock, SOL_SOCKET, SO_REUSEADDR, &amp;reuse,
+                sizeof(reuse)) == -1) {
+   OC_ERR(&#34;setting reuseaddr option %d\n&#34;, errno);
+   return -1;
+ }
+ if (bind(dev-&gt;mcast_sock, (struct sockaddr *)&amp;dev-&gt;mcast,
+          sizeof(dev-&gt;mcast)) == -1) {
+   OC_ERR(&#34;binding mcast socket %d\n&#34;, errno);
+   return -1;
+ }
+
+#ifdef OC_SECURITY
+ if (setsockopt(dev-&gt;secure_sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &amp;on,
+                sizeof(on)) == -1) {
+   OC_ERR(&#34;setting recvpktinfo option %d\n&#34;, errno);
+   return -1;
+ }
+ if (setsockopt(dev-&gt;secure_sock, SOL_SOCKET, SO_REUSEADDR, &amp;reuse,
+                sizeof(reuse)) == -1) {
+   OC_ERR(&#34;setting reuseaddr option %d\n&#34;, errno);
+   return -1;
+ }
+ if (bind(dev-&gt;secure_sock, (struct sockaddr *)&amp;dev-&gt;secure,
+          sizeof(dev-&gt;secure)) == -1) {
+   OC_ERR(&#34;binding IPv6 secure socket %d\n&#34;, errno);
+   return -1;
+ }
+
+ socklen = sizeof(dev-&gt;secure);
+ if (getsockname(dev-&gt;secure_sock, (struct sockaddr *)&amp;dev-&gt;secure,
+                 &amp;socklen) == -1) {
+   OC_ERR(&#34;obtaining secure socket information %d\n&#34;, errno);
+   return -1;
+ }
+
+ dev-&gt;dtls_port = ntohs(sm-&gt;sin6_port);
+#endif /* OC_SECURITY */
+#endif
+
+#ifdef OC_IPV4
+ if (connectivity_ipv4_init(dev) != 0) {
+   OC_ERR(&#34;Could not initialize IPv4\n&#34;);
+ }
+#endif /* OC_IPV4 */
+
+ if (pthread_create(&amp;dev-&gt;event_thread, NULL, &amp;network_event_thread, dev) !=
+     0) {
+   OC_ERR(&#34;creating network polling thread\n&#34;);
+   return -1;
+ }
+
+OC_DBG(&#34;=======ip port info.========&#34;);
+ OC_DBG(&#34;  ipv6 port   : %u&#34;, dev-&gt;port);
+#ifdef OC_SECURITY
+ OC_DBG(&#34;  ipv6 secure : %u&#34;, dev-&gt;dtls_port);
+#endif
+#ifdef OC_IPV4
+ OC_DBG(&#34;  ipv4 port   : %u&#34;, dev-&gt;port4);
+#ifdef OC_SECURITY
+ OC_DBG(&#34;  ipv4 secure : %u&#34;, dev-&gt;dtls4_port);
+#endif
+#endif
+
+ OC_DBG(&#34;Successfully initialized connectivity for device %d\n&#34;, device);
+
+ return 0;
+}
+
+</code></pre>
+<p>En esta función empezamos la conexión y la estructura de los sockets en el caso si se hará tanto en IPV4 como en IPV6, se definen los ports para conexión simple y conexión de forma segura</p>
+<h3>oc_connectivity_get_endpoints:</h3>
+<pre><code>oc_endpoint_t *
+oc_connectivity_get_endpoints(size_t device)
+{
+   (void)device;
+   ip_context_t *dev = get_ip_context_for_device(device);
+   if (!dev) {
+     return NULL;
+   }
+   oc_init_endpoint_list();
+   oc_endpoint_t ep;
+   oc_endpoint_t sec;
+   memset(&amp;sec,0,sizeof(oc_endpoint_t));
+   memset(&amp;ep, 0, sizeof(oc_endpoint_t));
+   int err = 0;
+#ifdef OC_IPV4
+   ep.flags = IPV4;
+   ep.addr.ipv4.port = OCF_PORT_UNSECURED;
+   tcpip_adapter_ip_info_t sta_ip;
+   err = tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &amp;sta_ip);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv4 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(ep.addr.ipv4.address, &amp;sta_ip.ip, 4);
+#ifdef OC_SECURITY
+   ep.flags |= SECURED;
+#endif
+  // IPv6
+   ep.flags = IPV6;
+   ep.addr.ipv6.port = OCF_PORT_UNSECURED;
+   struct ip6_addr if_ipaddr = { 0 };
+   err = tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipaddr);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv6 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(ep.addr.ipv6.address, if_ipaddr.addr, 16);
+
+#ifdef OC_TCP
+   ep.flags |= TCP;
+#endif
+   ep.device = 0;
+   oc_add_endpoint_to_list(&amp;ep);
+#ifdef OC_SECURITY
+#ifdef OC_IPV4
+   sec.flags = IPV4;
+   sec.addr.ipv4.port = OCF_PORT_SECURE;
+   tcpip_adapter_ip_info_t sta_i;
+   err = tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &amp;sta_i);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv4 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(sec.addr.ipv4.address, &amp;sta_i.ip, 4);
+#endif   // IPv6
+   sec.flags = IPV6;
+   sec.addr.ipv6.port = OCF_PORT_SECURE;
+   struct ip6_addr if_ipadd = { 0 };
+   err = tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipadd);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv6 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(sec.addr.ipv6.address, if_ipadd.addr, 16);
+#endif
+#ifdef OC_TCP
+   sec.flags |= TCP;
+#endif
+   sec.flags |= SECURED;
+   sec.device = 0;
+   oc_add_endpoint_to_list(&amp;sec);
+#endif
+   return oc_get_endpoint_list();
+}
+
+</code></pre>
+<p>En esta función se definen los puertos donde se establecerán las conexiones seguras, no seguras, de CoAP, CoAPs, CoAP+TCP y CoAPs+TCP,  para el dispositivo actual diferenciando si es para IPV4 o IPV6</p>
+<p>Las variables <code>OCF_PORT_SECURE</code> y <code>OCF_PORT_INSECURE</code> se definieron previamente en el mismo archivo como variables estáticas</p>
+<aside class="warning"><p><code>Para seguir viendo el resto de funciones del adaptador puede entrar al archivo ipadapter.c</code></p>
+</aside>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Seguridad con IoTivity Constrained" duration="0">
+        <h2><strong>DTLS</strong></h2>
+<p>Los dispositivos que se comunican con IoTivity de forma segura lo hacen por medio de una conexión DTLS, usando la librería mbed TLS v2 como base de la implementación de la capa de seguridad.</p>
+<h2><strong>Pasos de establecimiento de Seguridad:</strong></h2>
+<ul>
+<li>Onboarding de un dispositivo en la red</li>
+<li>Provisionamiento de un dispositivo usando la red del cliente</li>
+<li>Establecer la conexión segura</li>
+<li>Controlar el acceso basado en el ACL (Access control list)</li>
+</ul>
+<h2><strong>Herramienta de provisioning</strong></h2>
+<p>En las siguientes secciones para poder probar y hacer un mejor debugging de nuestras aplicaciones haremos uso de una herramienta desarrollada por la Open Connectivity Foundation</p>
+<p><a href="https://github.com/openconnectivityfoundation/development-support/blob/master/DeviceSpy/README.md" target="_blank">OCF device Spy</a> si está en un ambiente de Windows, o un <a href="https://github.com/openconnectivityfoundation/development-support/blob/master/otgc/README.md" target="_blank">cliente genérico</a> si está en un ambiente de Linux.</p>
+<p>Si se tiene Android 5.1 + puede instalar el cliente genérico</p>
+<p><a href="https://openconnectivityfoundation.github.io/development-support/otgc/android/otgc-debug.apk" target="_blank"><paper-button class="colored" raised>Android OTGC</paper-button></a></p>
+<p>Con estas herramientas podremos ver paso a paso el proceso de comunicación segura con dispositivos con IoTivity.</p>
+<h2><strong>Ownership Transfer - Onboarding</strong></h2>
+<p>El primer paso es el onboarding,  se obtienen datos sobre la propiedad del dispositivo, en caso de no tener propietario, se determina quién es el dueño del dispositivo. Usualmente el dueño original es el fabricante y el actual es quien adquiere el dispositivo</p>
+<h2><strong>Provisioning</strong></h2>
+<p>Se establecen los valores necesarios para mantener conexión segura con el dispositivo. Entre esta información se encuentran los access control entries (<strong>ACEs</strong>) que son recursos ubicados en el access control list (<strong>aclist2</strong>), que definen los permisos de acceso a los recursos. Cada ACE puede dar permisos por tipo de conexión (conntype), rol, o por un dispositivo en específico (<strong>UUID</strong>). Si es por conntype, esta puede ser anónima y sin encriptar (<strong>anon-clear</strong>) o autenticada y encriptada (<strong>auth-crypt</strong>). Para poder conectarse de manera autenticada, se debe poseer una forma de verificar la identidad, por ejemplo las claves compartidas. </p>
+<h2><strong>Probando</strong></h2>
+<p>Para probar la aplicación con seguridad activada hay que ir al menú de configuración y setear la opción de seguridad y PKI en la sección de IoTivity Example Configuration</p>
+<p><img style="max-width: 624.00px" src="img/7cc2eb15c38cfad4.png"></p>
+<p>Una vez hecho esto construiremos nuevamente la aplicación:</p>
+<pre><code>Make BLINKERSERVER=1 flash monitor</code></pre>
+<p>Después vamos a realizar las acciones de aprovisionamiento y envío de request por medio de nuestra herramienta de la OTCG</p>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Futuros planes" duration="0">
+        <p>Dentro de los planes a futuros están actualizar la versión de ESP-IDF utilizado así como implementar un adaptador para habilitar ports de CoAP+TCP y CoAPS+TCP, también está permitir el aprovisionamiento por medio de Oauth.</p>
+
+
+      </google-codelab-step>
+
+      <google-codelab-step label="Información adicional" duration="0">
+        <p>En los siguientes enlaces puedes acceder a sitios relacionados con los temas tratados en el codelab.</p>
+<aside class="special"><ul>
+<li><a href="http://events17.linuxfoundation.org/sites/events/files/slides/IoTivity-Constrained_OpenIoT.pdf" target="_blank">http://events17.linuxfoundation.org/sites/events/files/slides/IoTivity-Constrained_OpenIoT.pdf</a> </li>
+<li><a href="https://fercamp09.github.io/iotivity-first-device/index.html#0" target="_blank">https://fercamp09.github.io/iotivity-first-device/index.html#0</a> </li>
+<li><a href="https://docs.espressif.com/projects/esp-idf/en/latest/" target="_blank">https://docs.espressif.com/projects/esp-idf/en/latest/</a> </li>
+<li><a href="https://wiki.iotivity.org/ownership_transfer_and_provisioning" target="_blank">https://wiki.iotivity.org/ownership_transfer_and_provisioning</a> </li>
+<li><a href="https://wiki.iotivity.org/iotivity_security_architecture_overview" target="_blank">https://wiki.iotivity.org/iotivity_security_architecture_overview</a> </li>
+<li><a href="https://openconnectivity.org/wp-content/uploads/2016/01/OpenIoT_OCF_constrained.pdf" target="_blank">https://openconnectivity.org/wp-content/uploads/2016/01/OpenIoT_OCF_constrained.pdf</a> </li>
+</ul>
+</aside>
+
+
+      </google-codelab-step>
+
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>
