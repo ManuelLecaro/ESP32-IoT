@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "source": "1uV5ZYZHbJtS9CssXuLJH49TFrX8wPHGUwYHr14BIs1M",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2019-02-18T00:42:26Z",
+  "id": "ESP32-IoTivity",
+  "duration": 0,
+  "title": "Manual IoTivity en dispositivos ESP32",
+  "author": "niclec",
+  "summary": "En este codelab se demostrará la forma de implementar proyectos de Iotivity constrained en dispositivos ESP32",
+  "theme": "internet-de-las-cosas",
+  "status": [
+    "draft"
+  ],
+  "category": [
+    "Internet de las cosas"
+  ],
+  "tags": [
+    "esp-idf",
+    "esp32"
+  ],
+  "feedback": "https://github.com/ManuelLecaro/ESP32-IoT/issues",
+  "url": "ESP32-IoTivity"
+}
