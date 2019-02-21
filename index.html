@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>Manual IoTivity en dispositivos ESP32</title>
+  <title>Implementando IoTivity en dispositivos ESP32</title>
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../elements/codelab.html">
   <script src="https://storage.googleapis.combower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="https://storage.googleapis.comelements/codelab.html">
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
-  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-  <link rel="import" href="../../elements/codelab.html">
   <style is="custom-style">
     body {
       font-family: "Roboto",sans-serif;
@@ -22,13 +22,13 @@
 </head>
 <body unresolved class="fullbleed">
 
-  <google-codelab title="Manual IoTivity en dispositivos ESP32"
+  <google-codelab title="Implementando IoTivity en dispositivos ESP32"
                   environment="web"
-                  feedback-link="https://github.com/ManuelLecaro/ESP32-IoT/issues">
+                  feedback-link="https://github.com/ManuelLecaro/ManuelLecaro.github.io/issues">
 
-      <google-codelab-step label="Introducción" duration="0">
-        <p>El siguiente manual fue creado para proveer de una pauta para iniciar el desarrollo en dispositivos ESP32 que puedan comunicarse usando el protocolo El protocolo de aplicaciones reducidas (<em>CoAP</em>) (<em>RFC</em> 7252, Junio 2014), usando la plataforma provista por Espressif Systems para el desarrollo en equipos ESP32 y ESP8266 y la versión reducida de Iotivity</p>
-<p>Se proveerá de un ejemplo base, que actualmente trabaja de forma no segura, pero que se planea la implementación de mensajería segura con TLS.</p>
+      <google-codelab-step label="Introducción" duration="10">
+        <p>El siguiente manual fue creado para proveer de una pauta para iniciar el desarrollo en dispositivos ESP32 que puedan comunicarse usando el protocolo El protocolo de aplicaciones reducidas (<em>CoAP</em>) (<em>RFC</em> 7252, Junio 2014), usando la plataforma provista por Espressif Systems para el desarrollo en equipos ESP32 y ESP8266 e IoTivity Lite</p>
+<p>Se proveerá de un ejemplo base, que actualmente trabaja de forma no segura, pero se planea la implementación de mensajería segura por  DTLS.</p>
 <h2><strong>¿Qué es un ESP32?</strong></h2>
 <p>El ESP32 es un microcontrolador orientado al Internet de las cosas lanzado al mercado por Espressif Systems.</p>
 <p>Entre sus características principales están:</p>
@@ -38,7 +38,6 @@
 <li><strong>Nivel de Integración alto</strong> - Es altamente integrado con switches de antenas internas, RF, amplificador de poder, filtros, módulos de manejo de poder, tiene bajos requerimientos para PCBs</li>
 <li><strong>Bajo nivel de consumo</strong> - ha sido diseñado para dispositivos móviles, wearables y aplicaciones de IoT, por lo que tiene niveles mínimos de consumo.</li>
 </ul>
-<p>This codelab will walk you through creating your own Progressive Web App, including the design considerations, as well as implementation details, to ensure that your app meets the above key principles of a Progressive Web App.</p>
 <aside class="special"><p>Para saber más sobre los dispositivos ESP32  <a href="https://www.espressif.com/en/products/hardware/esp32/overview" target="_blank">ESP32 overview</a>.</p>
 </aside>
 <h2><strong>¿Qué es IoTivity?</strong></h2>
@@ -47,6 +46,16 @@
 <li><strong>Cliente OCF (OCF Client):</strong> Es una entidad lógica que interactúa con recursos de un servidor OCF mediante descubrimiento de los mismos y posterior acceso con operaciones CRUDN (C: Create / Crear , R: Retrieve / Obtener, U: Update / Actualizar, D: Delete / Eliminar, N: Notify / Notificar)</li>
 <li><strong>Servidor OCF (OCF Server):</strong> Es una entidad lógica que expone sus recursos almacenados, se puede descubrir y responde a las transacciones iniciadas por un cliente.</li>
 </ul>
+<p>Esta versión es para dispositivos que requieren mayores capacidades de energía y recursos computacionales, para poder acomodar las especificaciones y características obligatorias y opcionales de las <a href="https://openconnectivity.org/developer/specifications" target="_blank"><strong>especificaciones OCF  2.0</strong></a> las cuales incluyen:</p>
+<ul>
+<li>Seguridad definida con TLS</li>
+<li>Soporte para hacer aprovisionamiento</li>
+<li>Plugins de arquitecturas</li>
+<li>Directorio de recursos</li>
+</ul>
+<h2><strong>IoTivity Lite (IoTivity Constrained)</strong></h2>
+<p>IoTivity-Lite (también llamado IoTivity-Constrained) es una implementación liviana de los estándares de Open Connectivity Foundation (OCF) para Internet of Things (IoT), el estándar cuenta con la versión 2.0. Para más detalles se puede dirigir a este <a href="https://iotivity.org/about-iotivity-lite" target="_blank">enlace </a><br><br>Fue diseñado para crear aplicaciones de IoT seguras e interoperables conforme con los estándares de OCF con un espacio limitado que no exceda las necesidades de las especificaciones. </p>
+<p><br>Las aplicaciones de IoT pueden construirse para una amplia variedad de dispositivos ricos y con recursos limitados en todo el entorno de IoT. Como una guía general, debería ser factible implementar aplicaciones en dispositivos con restricciones de clase 2 (&gt; 256KB Flash,&gt; 64KB RAM), o mejor.</p>
 <aside class="special"><p>Aquí puedes encontrar más información detallada acerca de <a href="https://fercamp09.github.io/iotivity-first-device/index.html#0" target="_blank">IoTivity</a></p>
 </aside>
 <h2><strong>¿Qué se va a desarrollar?</strong></h2>
@@ -80,7 +89,7 @@
 
       </google-codelab-step>
 
-      <google-codelab-step label="Empezando con las dependencias" duration="0">
+      <google-codelab-step label="Empezando con las dependencias" duration="45">
         <h2><strong>Obteniendo código base</strong></h2>
 <p>El siguiente instructivo está enfocado para sistemas Linux</p>
 <ol type="1" start="1">
@@ -99,7 +108,7 @@
 cd esp32-iotivity
 git submodule update --init --recursive</code></pre>
 <h2><strong>Pre requisitos y seteando variables de entorno</strong></h2>
-<p>Para información más detallada, así como respuestas a las preguntas mś frecuentes diríjase a este <a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html" target="_blank">sitio</a></p>
+<p>Para información más detallada, así como respuestas a las preguntas más frecuentes diríjase a este <a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html" target="_blank">sitio</a></p>
 <ol type="1" start="1">
 <li>Instale los pre requisitos para compilar con esp-idf</li>
 </ol>
@@ -218,7 +227,7 @@ chmod -R u+w builds/xtensa-esp32-elf</code></pre>
 
       </google-codelab-step>
 
-      <google-codelab-step label="Actualizando la versión de IoTivity" duration="0">
+      <google-codelab-step label="Actualizando la versión de IoTivity" duration="8">
         <p>La versión actual dentro de IoTivity en el código base corresponde a <a href="https://github.com/iotivity/iotivity-constrained/tree/0840e0a41a95fcff725e498fc7245a828a1a65a3" target="_blank">iotivity-constrained @ 0840e0a</a>, la cual soporta OIC ver. 1.1, la versión actual es la 2.0, por lo tanto para tener el soporte, necesitaremos actualizar el repositorio de <a href="https://github.com/iotivity/iotivity-constrained" target="_blank">IoTivity</a>.</p>
 <p>Una vez actualizada, la versión de IoTivity constrained, se deberá cambiar su resectivo component.mk file, para no tener problemas con dependencias y agregar las nuevas funciones como nuevos ports y cambios en archivos de seguridad.</p>
 <p>El component file será:</p>
@@ -309,11 +318,26 @@ iotivity-constrained/messaging/coap \
 iotivity-constrained/deps/tinycbor/src  \
 adapter/src
 </code></pre>
+<aside class="special"><p><strong>Variables opcionales de proyecto:</strong></p>
+<p>Estas variables tienen valores por defecto que se pueden sobreescribir según sea necesario:</p>
+<p><strong>PROJECT_PATH: </strong>Se define la ubicación del directorio principal del proyecto, usualmente esta variable no se sobreescribe y no se usa en component.mk files</p>
+<p><strong>BUILD_DIR_BASE:</strong> El directorio donde se almacenan todos los objects/libraries/binaries. Su ubicación por defecto es $(PROJECT_PATH)/build</p>
+<p><strong>COMPONENT_DIRS:</strong> El directorio para buscar los componentes. Su valor por defecto es $(IDF_PATH)/components, $(PROJECT_PATH)/components, $(PROJECT_PATH)/main  y  EXTRA_COMPONENT_DIRS. </p>
+<p><strong>EXTRA_COMPONENT_DIRS: </strong>lista de directorios adicionales donde buscar componentes</p>
+<p><strong>COMPONENTS: </strong>Lista de nombres de componentes para construir el proyecto, su valor por defecto es el directorio COMPONENT_DIRS</p>
+<p><strong>EXCLUDE_COMPONENTS: </strong> lista de nombres de componentes que se excluyen en el proceso de construcción</p>
+<p><strong>TEST_EXCLUDE_COMPONENTS: </strong>lista de nombres de componentes que se excluyen en el proceso de construcción de las pruebas unitarias.</p>
+<p><strong>COMPONENT_SRCDIRS:</strong> son rutas a directorios, relativas a la dirección del component file en el que se agregan, búscaran los archivos (*.cpp, *.c, *.s), su valor por defecto es  &#34;.&#34;, es decir el directorio en el que se encuentra el component file</p>
+<p><strong>COMPONENT_OBJS: </strong>object files para compila, se escribe .o para el nombre de cada archivo con código fuente que se encuentra COMPONENT_SRCDIRS, al añadir esta variable permites que se excluyan archivos en COMPONENT_SRCDIRS, que de otra forma se compilarían siguiendo un orden alfabético.</p>
+<p><strong>COMPONENT_ADD_INCLUDEDIRS: </strong>Rutas relativas al directorio del componente, que será agregado al <strong><em>include search path. </em></strong>Su valor por defecto es include en caso de no ser sobreescrito.</p>
+</aside>
+<aside class="warning"><p>Para acceder a más información sobre las variables opcionales y el sistema de compilado de ESP-IDF, diríjase a este <a href="https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html" target="_blank">sitio</a></p>
+</aside>
 
 
       </google-codelab-step>
 
-      <google-codelab-step label="Creando código en ESP-IDF con Iotivity" duration="0">
+      <google-codelab-step label="Desarrollando aplicaciones en ESP-IDF con IoTivity" duration="45">
         <h2><strong>ESP-IDF framework</strong></h2>
 <p>Como fue explicado en puntos anteriores se usará el framework oficial de Espressif para manejar la creación de aplicaciones con IoTivity.</p>
 <h2><strong>Configuraciones básicas</strong></h2>
@@ -794,7 +818,6 @@ discovery_cb(const char *di, const char *uri, oc_string_array_t types,
 
    oc_do_observe(light_1, plug_server, NULL, &amp;observe_plug, LOW_QOS, NULL);
    oc_set_delayed_callback(NULL, &amp;stop_observe, 15);
-   //ret = oc_do_get(uri, server, NULL, check_resource_cb, HIGH_QOS, user_data);
    PRINT(&#34;Get response values of %s al endpoint:\n&#34;,light_1);
    pos++;
    //if (!ret)
@@ -858,7 +881,7 @@ post_plug(oc_client_response_t *data){
 
       </google-codelab-step>
 
-      <google-codelab-step label="Configuración y construcción de aplicación" duration="0">
+      <google-codelab-step label="Configuración y construcción de aplicación" duration="25">
         <p>Estando en la terminal podemos acceder al entorno gráfico de configuración con:</p>
 <aside class="special"><p><code>make menuconfig</code></p>
 </aside>
@@ -1140,7 +1163,7 @@ endif</code></pre>
 
       </google-codelab-step>
 
-      <google-codelab-step label="Port de Iotivity Constrained para ESP32" duration="0">
+      <google-codelab-step label="Port de Iotivity Constrained para ESP32" duration="20">
         <p>Actualmente IoTivity constrained soporta arquitecturas Linux, Contiki, FreeRTOS, RioT, TizenRT, OpenThread, Android y Windows y zephyr.</p>
 <p>Las opciones de configuración para una aplicación están seteadas en <code>oc_config.h,</code> la cual debe ser agregada en los include paths.</p>
 <p>No obstante la configuración para este proyecto se ha agregado en el archivo config.h dentro del directorio <code>components/iotivity/adapter/src</code></p>
@@ -1407,10 +1430,64 @@ oc_connectivity_get_endpoints(size_t device)
    sec.device = 0;
    oc_add_endpoint_to_list(&amp;sec);
 #endif
-   return oc_get_endpoint_list();
-}
+#ifdef OC_TCP
+   oc_endpoint_t sectcp;
+   memset(&amp;sectcp,0,sizeof(oc_endpoint_t));
+#ifdef OC_IPV4
+   sectcp.flags = IPV4;
+   sectcp.addr.ipv4.port = OCF_PORT_TCP;
+   tcpip_adapter_ip_info_t sta_iptcp;
+   err = tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &amp;sta_iptcp);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv4 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(sectcp.addr.ipv4.address, &amp;sta_iptcp.ip, 4);
+#ifdef OC_SECURITY
+   sectcp.flags |= SECURED;
+#endif
+#else
+   sectcp.flags = IPV6;
+   sectcp.addr.ipv6.port = OCF_PORT_TCP+1;
+   struct ip6_addr if_ipaddtcp = { 0 };
+   err = tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipaddtcp);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv6 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(sectcp.addr.ipv6.address, if_ipaddtcp.addr, 16);
+#endif
+   sectcp.flags |= TCP;
+   sectcp.device = 0;
+   oc_add_endpoint_to_list(&amp;sectcp);
+#endif
 
-</code></pre>
+#ifdef OC_TCP
+   oc_endpoint_t nosectcp;
+   memset(&amp;nosectcp,0,sizeof(oc_endpoint_t));
+#ifdef OC_IPV4
+   nosectcp.flags = IPV4;
+   nosectcp.addr.ipv4.port = OC_PORT_TCP_UNSECURE;
+   tcpip_adapter_ip_info_t sta_iptcpno;
+   err = tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &amp;sta_iptcpno);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv4 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(nosectcp.addr.ipv4.address, &amp;sta_iptcpno.ip, 4);
+#else
+   nosectcp.flags = IPV6;
+   nosectcp.addr.ipv6.port = OC_PORT_TCP_UNSECURE;
+   struct ip6_addr if_ipaddtcpno = { 0 };
+   err = tcpip_adapter_get_ip6_linklocal(TCPIP_ADAPTER_IF_STA, &amp;if_ipaddtcpno);
+   if (err != ESP_OK) {
+       print_error(&#34;get ipv6 failed,ret:%d\n&#34;, err);
+   }
+   memcpy(nosectcp.addr.ipv6.address, if_ipaddtcpno.addr, 16);
+#endif
+   nosectcp.flags |= TCP;
+   nosectcp.device = 0;
+   oc_add_endpoint_to_list(&amp;nosectcp);
+#endif
+   return oc_get_endpoint_list();
+}</code></pre>
 <p>En esta función se definen los puertos donde se establecerán las conexiones seguras, no seguras, de CoAP, CoAPs, CoAP+TCP y CoAPs+TCP,  para el dispositivo actual diferenciando si es para IPV4 o IPV6</p>
 <p>Las variables <code>OCF_PORT_SECURE</code> y <code>OCF_PORT_INSECURE</code> se definieron previamente en el mismo archivo como variables estáticas</p>
 <aside class="warning"><p><code>Para seguir viendo el resto de funciones del adaptador puede entrar al archivo ipadapter.c</code></p>
@@ -1419,7 +1496,7 @@ oc_connectivity_get_endpoints(size_t device)
 
       </google-codelab-step>
 
-      <google-codelab-step label="Seguridad con IoTivity Constrained" duration="0">
+      <google-codelab-step label="Seguridad con IoTivity Constrained" duration="7">
         <h2><strong>DTLS</strong></h2>
 <p>Los dispositivos que se comunican con IoTivity de forma segura lo hacen por medio de una conexión DTLS, usando la librería mbed TLS v2 como base de la implementación de la capa de seguridad.</p>
 <h2><strong>Pasos de establecimiento de Seguridad:</strong></h2>
@@ -1438,7 +1515,11 @@ oc_connectivity_get_endpoints(size_t device)
 <h2><strong>Ownership Transfer - Onboarding</strong></h2>
 <p>El primer paso es el onboarding,  se obtienen datos sobre la propiedad del dispositivo, en caso de no tener propietario, se determina quién es el dueño del dispositivo. Usualmente el dueño original es el fabricante y el actual es quien adquiere el dispositivo</p>
 <h2><strong>Provisioning</strong></h2>
-<p>Se establecen los valores necesarios para mantener conexión segura con el dispositivo. Entre esta información se encuentran los access control entries (<strong>ACEs</strong>) que son recursos ubicados en el access control list (<strong>aclist2</strong>), que definen los permisos de acceso a los recursos. Cada ACE puede dar permisos por tipo de conexión (conntype), rol, o por un dispositivo en específico (<strong>UUID</strong>). Si es por conntype, esta puede ser anónima y sin encriptar (<strong>anon-clear</strong>) o autenticada y encriptada (<strong>auth-crypt</strong>). Para poder conectarse de manera autenticada, se debe poseer una forma de verificar la identidad, por ejemplo las claves compartidas. </p>
+<p>Se establecen los valores necesarios para mantener conexión segura con el dispositivo. Entre esta información se encuentran los access control entries (<strong>ACEs</strong>) que son recursos ubicados en el access control list (<strong>aclist2</strong>), que definen los permisos de acceso a los recursos. Cada ACE puede dar permisos por tipo de conexión (conntype), rol, o por un dispositivo en específico (<strong>UUID</strong>). Si es por conntype, esta puede ser anónima y sin encriptar (<strong>anon-clear</strong>) o autenticada y encriptada (<strong>auth-crypt</strong>).</p>
+<p>Una vez hecho el provisioning el objeto de IoTivity tendrá una forma de verificar la identidad de aquel que quiera accederlo, tendrá que comunicarse de manera autenticada por ejemplo, por medio de claves compartidas. </p>
+<aside class="special"><p><strong>Herramientas de onboarding</strong></p>
+<p>En el siguiente apartado puedes obtener una explicación más detallada sobre el uso de estas herramientas, descrito por la <a href="https://openconnectivity.org/wp-content/uploads/2018/07/8.-Onboarding-Tool-Generic-Client.pdf" target="_blank">OCF</a></p>
+</aside>
 <h2><strong>Probando</strong></h2>
 <p>Para probar la aplicación con seguridad activada hay que ir al menú de configuración y setear la opción de seguridad y PKI en la sección de IoTivity Example Configuration</p>
 <p><img style="max-width: 624.00px" src="img/7cc2eb15c38cfad4.png"></p>
@@ -1450,7 +1531,8 @@ oc_connectivity_get_endpoints(size_t device)
       </google-codelab-step>
 
       <google-codelab-step label="Futuros planes" duration="0">
-        <p>Dentro de los planes a futuros están actualizar la versión de ESP-IDF utilizado así como implementar un adaptador para habilitar ports de CoAP+TCP y CoAPS+TCP, también está permitir el aprovisionamiento por medio de Oauth.</p>
+        <p>Dentro de los planes a futuros están actualizar la versión de ESP-IDF utilizado así como implementar un adaptador para habilitar ports de CoAP+TCP y CoAPS+TCP</p>
+<p>Habilitar comunicación segura por medio de DTLS.</p>
 
 
       </google-codelab-step>
@@ -1464,6 +1546,7 @@ oc_connectivity_get_endpoints(size_t device)
 <li><a href="https://wiki.iotivity.org/ownership_transfer_and_provisioning" target="_blank">https://wiki.iotivity.org/ownership_transfer_and_provisioning</a> </li>
 <li><a href="https://wiki.iotivity.org/iotivity_security_architecture_overview" target="_blank">https://wiki.iotivity.org/iotivity_security_architecture_overview</a> </li>
 <li><a href="https://openconnectivity.org/wp-content/uploads/2016/01/OpenIoT_OCF_constrained.pdf" target="_blank">https://openconnectivity.org/wp-content/uploads/2016/01/OpenIoT_OCF_constrained.pdf</a> </li>
+<li><a href="https://openconnectivity.org/wp-content/uploads/2018/07/8.-Onboarding-Tool-Generic-Client.pdf" target="_blank">https://openconnectivity.org/wp-content/uploads/2018/07/8.-Onboarding-Tool-Generic-Client.pdf</a> </li>
 </ul>
 </aside>
 
